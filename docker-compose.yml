@@ -1,0 +1,67 @@
+#Đầu tiên là tên phiên bản của docker compose
+version: "3"
+
+#NETWORK
+networks: 
+    my-networks: #tên của network
+        driver: bridge  #Loại drive của network
+
+#VOLUMES
+volumes: 
+    dir-site: #tên của volume
+        driver_opts: #thiết lập cảu volume
+            device: /home/nguyen.trung.thanh/Documents/dockertest/mycode/sites/ #chỉ ra đường dẫn trên máy host
+            type: bind
+            o: bind
+
+#Tạo các dịch vụ services
+services: 
+    #container PHP
+    my-php:
+        container_name: php-prduct
+        #Container này được tạo ra từ một image đc mô tả trong docker file
+        build: 
+            dockerfile: Dockerfile #Name của file dockerfile đấy
+            context: /home/nguyen.trung.thanh/Documents/dockertest/mycode/php/ #Đường dẫn nạp dockerfile này
+        hostname: php #Đặt host name cho container được tạo ra
+        restart: always #container tự động khởi động lại khi bị tắt 
+        networks: #container này được nối vào mạng nào
+            - my-networks
+        volumes: #ổ đĩa đc ánh xạ
+            - dir-site:/home/sites/ #ánh xạ từ ổ đĩa dir-site ở trên vào /home/sites của container
+
+    #container HTTPD
+    my-httpd:
+        container_name: c-httpd01
+        image: "httpd:latest" #image sử dụng để buil lên container này
+        hostname: httpd
+        restart: always
+        networks: #container này được nối vào mạng nào
+            - my-networks
+        volumes: #ổ đĩa đc ánh xạ
+            - dir-site:/home/sites/ #ánh xạ từ ổ đĩa dir-site ở trên vào /home/sites của container
+            - /home/nguyen.trung.thanh/Documents/dockertest/mycode/httpd.conf:/usr/local/apache2/conf/httpd.conf #ánh xạ file config trên máy host vào file config httpd của container
+        ports: #thiết lập cổng truy cập máy host: container
+            - "9999:80"
+            - "443:443"
+
+    #container MySQL
+    my-mysql:
+        container_name: mysql-product
+        image: "mysql:latest"
+        hostname: mysql
+        restart: always
+        networks: 
+            - my-networks
+        volumes: 
+            - /home/nguyen.trung.thanh/Documents/dockertest/mycode/db:/var/lib/mysql
+            - /home/nguyen.trung.thanh/Documents/dockertest/mycode/my.conf:/etc/mysql/my.conf
+            #- dir-site:/home/site/
+        environment: #thiết lập biến môi trường
+            - MYSQL_ROOT_PASSWORD=123abc
+            - MYSQL_DATABASE=db_site
+            - MYSQL_USER=siteuser
+            - MYSQL_PASSWORD=sitepass
+            
+
+            

@@ -1,0 +1,30 @@
+PHP:7.3-FPM (php-prduct)
+    - port: 9000
+    - Cài mysqli, pdo_mysql
+        * docker-php-ext-install mysql
+        * docker-php-ext-install pdo_mysql
+    - Thư mục làm việc: /home/sites/site1
+APACHE HTTPD: (c-httpd01)
+    - port: 80, 443
+    - config: /usr/local/apache2/conf/httpd.conf
+        * Nạp: mod_proxy, mod_proxy_fcgi
+        * Thư mục làm việc: /home/sites/site1
+        * index mặc định: index.php index.html
+        * PHPANDLER: AddHandler "proxy:fcgi://c-php:9000" .php
+
+MYSQL: (mysql-product)
+    - port: 3304
+    - config: /etc/mysql/my.conf
+        * default-authentication-plugin=mysql_native_password
+    - database: /var/lib/mysql -> /mycode/db
+    - MYSQL_ROOT_PASSWORD: 123abc (tạo ra thông qua biến môi trường)
+    - MYSQL_DATABASE: db_site
+    - MYSQL_USER: siteuser
+    - MYSQL_PASSWORD: sitepass
+
+NETWORK:
+    - bridge
+    - my-network
+
+VOLUME: dir-site
+    - bind, devide = /mycode/
